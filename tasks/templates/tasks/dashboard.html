@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Total Tasks</h5>
+                <p class="card-text">{{ tasks|length }}</p>
+            </div>
+        </div>
+        <div class="card text-white bg-info mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Completed</h5>
+                <p class="card-text">{{ tasks.filter(is_completed=True)|length }}</p>
+            </div>
+        </div>
+        <div class="card text-white bg-warning mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Pending</h5>
+                <p class="card-text">{{ tasks.filter(is_completed=False)|length }}</p>
+            </div>
+        </div>
+        <div class="card text-white bg-danger mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Overdue</h5>
+                <p class="card-text">{{ tasks.filter(is_completed=False, due_date__lt=datetime.now)|length }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <h2>My Tasks</h2>
+        {% if tasks %}
+            <div class="list-group">
+                {% for task in tasks %}
+                    <a href="{% url 'task-detail' task.pk %}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">{{ task.title }}</h5>
+                            {% if task.is_completed %}
+                                <span class="badge bg-success">Completed</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                            <small class="text-muted">{{ task.get_priority_display }}</small>
+                        </div>
+                        <p class="mb-1">{{ task.get_category_display }}</p>
+                        {% if task.due_date %}
+                            <small class="text-muted">Due: {{ task.due_date|date:"M d, Y" }}</small>
+                        {% endif %}
+                        <hr>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-muted">No tasks found. <a href="{% url 'task-add' %}">Create one</a>.</p>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="{% url 'task-add' %}" class="btn btn-primary">Add New Task</a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dark mode toggle
+const toggleDarkMode = () => {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+};
+if (localStorage.getItem('darkMode')) {
+    document.body.classList.add('dark-mode');
+}
+document.getElementById('dark-mode-toggle').addEventListener('click', toggleDarkMode);
+</script>
+{% endblock %}

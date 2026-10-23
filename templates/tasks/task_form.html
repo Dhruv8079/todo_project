@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}{% if form.instance.pk %}Edit Task{% else %}New Task{% endif %} - TaskFlow{% endblock %}
+{% block page_heading %}{% if form.instance.pk %}Edit Task{% else %}Create Task{% endif %}{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-plus-circle{% endif %} me-2"></i>
+                    {% if form.instance.pk %}Edit Task{% else %}Create a New Task{% endif %}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                Task Title <span class="text-danger">*</span>
+                            </label>
+                            {{ form.title }}
+                            {% for error in form.title.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label for="{{ form.priority.id_for_label }}" class="form-label">Priority</label>
+                            {{ form.priority }}
+                            {% for error in form.priority.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label for="{{ form.description.id_for_label }}" class="form-label">Description</label>
+                            {{ form.description }}
+                            {% for error in form.description.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                            {{ form.category }}
+                            {% for error in form.category.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="{{ form.due_date.id_for_label }}" class="form-label">Due Date</label>
+                            {{ form.due_date }}
+                            {% for error in form.due_date.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            <small class="text-muted">Optional. Format: YYYY-MM-DD HH:MM</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{% url 'tasks:dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>
+                            {% if form.instance.pk %}Update Task{% else %}Create Task{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

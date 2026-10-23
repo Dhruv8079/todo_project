@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}Completed Tasks - TaskFlow{% endblock %}
+{% block page_heading %}Completed Tasks{% endblock %}
+
+{% block content %}
+
+<div class="row g-3 mb-4">
+    <div class="col-sm-6">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="stat-number text-success">{{ completed_tasks }}</div>
+                <small class="stat-label">Completed Tasks</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="card stat-card">
+            <div class="card-body">
+                <div class="stat-number">{{ completion_percentage }}%</div>
+                <small class="stat-label">Completion Rate</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if tasks %}
+        <div class="table-responsive">
+            <table class="table table-hover table-task align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Task</th>
+                        <th>Priority</th>
+                        <th>Category</th>
+                        <th>Due Date</th>
+                        <th>Completed On</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr>
+                        <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                        <td>
+                            <span class="fw-medium">{{ task.title }}</span>
+                        </td>
+                        <td><span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span></td>
+                        <td><span class="badge bg-light text-dark border">{{ task.get_category_display }}</span></td>
+                        <td>
+                            {% if task.due_date %}
+                                <small class="text-muted">{{ task.due_date|date:"M j, Y" }}</small>
+                            {% else %}
+                                <small class="text-muted">—</small>
+                            {% endif %}
+                        </td>
+                        <td><small class="text-muted">{{ task.updated_at|date:"M j, Y" }}</small></td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'tasks:task-detail' task.pk %}" class="btn btn-outline-secondary" title="View"><i class="fas fa-eye"></i></a>
+                                <form method="post" action="{% url 'tasks:task-complete' task.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning" title="Reopen"><i class="fas fa-undo"></i></button>
+                                </form>
+                                <a href="{% url 'tasks:task-delete' task.pk %}" class="btn btn-outline-danger" title="Delete"><i class="fas fa-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-check-circle"></i>
+            <h5>No completed tasks yet</h5>
+            <p class="mb-3">Complete a task and it will show up here.</p>
+            <a href="{% url 'tasks:dashboard' %}" class="btn btn-primary">Go to dashboard</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if is_paginated %}
+<nav class="mt-4" aria-label="Completed tasks pagination">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+        <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}

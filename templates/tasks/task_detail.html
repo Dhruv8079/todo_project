@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} - TaskFlow{% endblock %}
+{% block page_heading %}Task Details{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0"><i class="fas fa-clipboard-check me-2"></i>{{ task.title }}</h5>
+                {% if task.is_completed %}
+                    <span class="badge bg-success">Completed</span>
+                {% elif task.is_overdue %}
+                    <span class="badge bg-danger">Overdue</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <p class="mb-2"><strong>Priority:</strong>
+                            <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                        </p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-2"><strong>Category:</strong>
+                            <span class="badge bg-light text-dark border">{{ task.get_category_display }}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <p class="mb-2"><strong>Created:</strong> {{ task.created_at|date:"F j, Y, H:i" }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-2"><strong>Last updated:</strong> {{ task.updated_at|date:"F j, Y, H:i" }}</p>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <p class="mb-2"><strong>Due date:</strong>
+                            {% if task.due_date %}{{ task.due_date|date:"F j, Y, H:i" }}{% else %}<span class="text-muted">Not set</span>{% endif %}
+                        </p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="mb-2"><strong>Status:</strong>
+                            {% if task.is_completed %}Completed{% elif task.is_overdue %}Overdue{% else %}Pending{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6 class="text-muted">Description</h6>
+                {% if task.description %}
+                    <p class="mb-0">{{ task.description|linebreaksbr }}</p>
+                {% else %}
+                    <p class="text-muted fst-italic mb-0">No description provided.</p>
+                {% endif %}
+
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <form method="post" action="{% url 'tasks:task-complete' task.pk %}">
+                        {% csrf_token %}
+                        {% if task.is_completed %}
+                            <button type="submit" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-undo me-1"></i>Reopen
+                            </button>
+                        {% else %}
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="fas fa-check me-1"></i>Mark Complete
+                            </button>
+                        {% endif %}
+                    </form>
+
+                    <a href="{% url 'tasks:task-update' task.pk %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </a>
+                    <a href="{% url 'tasks:task-delete' task.pk %}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash me-1"></i>Delete
+                    </a>
+                    <a href="{% url 'tasks:dashboard' %}" class="btn btn-link btn-sm ms-auto">Back to dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

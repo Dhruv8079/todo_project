@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - TaskFlow{% endblock %}
+{% block page_heading %}Profile{% endblock %}
+
+{% block content %}
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card profile-card text-center">
+            <div class="card-body">
+                <div class="profile-avatar mx-auto mb-3">
+                    {{ user.username|first|upper }}
+                </div>
+                <h4 class="mb-1">{{ user.username }}</h4>
+                <p class="text-muted mb-1">{{ user.email|default:"No email set" }}</p>
+                <p class="text-muted small mb-3">Member since {{ user.date_joined|date:"F Y" }}</p>
+                <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm"
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+                <form id="logout-form" method="post" action="{% url 'logout' %}" class="d-none">
+                    {% csrf_token %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card stat-card text-center h-100">
+                    <div class="card-body">
+                        <div class="stat-number">{{ total_tasks }}</div>
+                        <small class="stat-label">Total</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card text-center h-100">
+                    <div class="card-body">
+                        <div class="stat-number text-success">{{ completed_tasks }}</div>
+                        <small class="stat-label">Completed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card text-center h-100">
+                    <div class="card-body">
+                        <div class="stat-number text-warning">{{ pending_tasks }}</div>
+                        <small class="stat-label">Pending</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card text-center h-100">
+                    <div class="card-body">
+                        <div class="stat-number text-primary">{{ completion_percentage }}%</div>
+                        <small class="stat-label">Done</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-history me-2"></i>Recent Tasks</span>
+                <a href="{% url 'tasks:dashboard' %}" class="btn btn-sm btn-outline-primary">View all</a>
+            </div>
+            <div class="card-body p-0">
+                {% if tasks %}
+                <ul class="list-group list-group-flush">
+                    {% for task in tasks %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas {% if task.is_completed %}fa-check-circle text-success{% else %}fa-circle-notch text-warning{% endif %} me-2"></i>
+                            {{ task.title }}
+                        </span>
+                        <span class="badge badge-{{ task.priority }}">{{ task.get_priority_display }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <p class="mb-0">No tasks yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

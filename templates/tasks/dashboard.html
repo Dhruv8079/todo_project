@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TaskFlow{% endblock %}
+{% block page_heading %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Statistics cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number">{{ total_tasks }}</div>
+                    <small class="stat-label">Total Tasks</small>
+                </div>
+                <i class="fas fa-list fa-2x text-primary opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number text-success">{{ completed_tasks }}</div>
+                    <small class="stat-label">Completed</small>
+                </div>
+                <i class="fas fa-check-circle fa-2x text-success opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number text-warning">{{ pending_tasks }}</div>
+                    <small class="stat-label">Pending</small>
+                </div>
+                <i class="fas fa-hourglass-half fa-2x text-warning opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-number text-danger">{{ overdue_tasks }}</div>
+                    <small class="stat-label">Overdue</small>
+                </div>
+                <i class="fas fa-exclamation-triangle fa-2x text-danger opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Progress -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0"><i class="fas fa-chart-line me-2 text-primary"></i>Completion Progress</h6>
+            <span class="fw-bold">{{ completion_percentage }}%</span>
+        </div>
+        <div class="progress" style="height: 10px;" role="progressbar"
+             aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-bar {% if completion_percentage >= 50 %}bg-success{% else %}bg-warning{% endif %}"
+                 style="width: {{ completion_percentage }}%"></div>
+        </div>
+        <small class="text-muted">{{ completed_tasks }} of {{ total_tasks }} tasks completed</small>
+    </div>
+</div>
+
+<!-- Search & filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row g-3 align-items-center">
+            <div class="col-lg-5">
+                <form method="get" action="{% url 'tasks:task-search' %}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="search" name="q" value="{{ search_query|default:'' }}"
+                               class="form-control" placeholder="Search by title or description...">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4">
+                <select class="form-select" onchange="if (this.value) window.location.href = this.value;">
+                    <option value="">Filter by priority</option>
+                    <option value="{% url 'tasks:task-by-priority' 'high' %}">High priority</option>
+                    <option value="{% url 'tasks:task-by-priority' 'medium' %}">Medium priority</option>
+                    <option value="{% url 'tasks:task-by-priority' 'low' %}">Low priority</option>
+                </select>
+            </div>
+            <div class="col-lg-3">
+                <select class="form-select" onchange="if (this.value) window.location.href = this.value;">
+                    <option value="">Filter by category</option>
+                    <option value="{% url 'tasks:task-by-category' 'work' %}">Work</option>
+                    <option value="{% url 'tasks:task-by-category' 'personal' %}">Personal</option>
+                    <option value="{% url 'tasks:task-by-category' 'study' %}">Study</option>
+                    <option value="{% url 'tasks:task-by-category' 'other' %}">Other</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task list -->
+<div class="row g-3">
+    {% for task in tasks %}
+    <div class="col-md-6 col-xl-4">
+        <div class="card task-card h-100 {% if task.is_completed %}task-done{% endif %}">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <h6 class="task-title mb-0">{{ task.title }}</h6>
+                    <span class="badge badge-{{ task.priority }} text-uppercase">{{ task.get_priority_display }}</span>
+                </div>
+
+                <div class="mb-2">
+                    <span class="badge bg-light text-dark border">
+                        <i class="fas fa-tag me-1"></i>{{ task.get_category_display }}
+                    </span>
+                    {% if task.due_date %}
+                        <span class="badge {% if task.is_overdue %}bg-danger{% else %}bg-light text-dark border{% endif %}">
+                            <i class="fas fa-calendar me-1"></i>{{ task.due_date|date:"M j, Y H:i" }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if task.description %}
+                <p class="small text-muted flex-grow-1 mb-2">{{ task.description|truncatewords:20 }}</p>
+                {% else %}
+                <p class="small text-muted fst-italic flex-grow-1 mb-2">No description</p>
+                {% endif %}
+
+                <div class="d-flex justify-content-between align-items-center mt-auto pt-2 border-top">
+                    <div>
+                        {% if task.is_completed %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                        {% elif task.is_overdue %}
+                            <span class="badge bg-danger"><i class="fas fa-clock me-1"></i>Overdue</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark"><i class="fas fa-hourglass me-1"></i>Pending</span>
+                        {% endif %}
+                    </div>
+                    <div class="btn-group btn-group-sm">
+                        <a href="{% url 'tasks:task-detail' task.pk %}" class="btn btn-outline-secondary" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'tasks:task-update' task.pk %}" class="btn btn-outline-primary" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <form method="post" action="{% url 'tasks:task-complete' task.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-success" title="{% if task.is_completed %}Reopen{% else %}Complete{% endif %}">
+                                <i class="fas {% if task.is_completed %}fa-undo{% else %}fa-check{% endif %}"></i>
+                            </button>
+                        </form>
+                        <a href="{% url 'tasks:task-delete' task.pk %}" class="btn btn-outline-danger" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="empty-state card">
+            <i class="fas fa-clipboard-list"></i>
+            <h5>No tasks found</h5>
+            <p class="mb-3">Create your first task or adjust your filters.</p>
+            <a href="{% url 'tasks:task-create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Add Task
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<nav class="mt-4" aria-label="Task pagination">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Previous</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+        {% endif %}
+
+        {% for num in paginator.page_range %}
+            {% if num == page_obj.number %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item"><a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}">Next</a></li>
+        {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% endblock %}
